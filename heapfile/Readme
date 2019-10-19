@@ -1,0 +1,62 @@
+To use lib:
+export LD_LIBRARY_PATH=(path to lib folder)
+
+Usefull Commands:
+	make, make restart (cleans data.db), (strace -c -v ./runner) &> LRU|MRU.txt
+	
+
+LRU // MRU
+==================================================================================================================================================
+For the LRU and MRU policies, we can see from the results from strace that the MRU policy requires significantly more system calls 
+for /read, /lseek, and /write, with more emphasis on the /read and /lseek. 
+As a result, MRU is less efficient than LRU and it requires more time. 
+This means that we have a case where the dataset is not only accessed by repeated scans, but these scans are also random (cyclic access patterns). 
+Truthfully, the TestFileScan function, scans the file in such a way the the LRU policy works better. 
+This can also be seen from the CPU time records of each policy.
+-------------------------------------------------------------------
+LRU
+CPU Time: 5.723849
+-------------------------------------------------------------------
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 50,25    0,179655           1    106528           read
+ 46,93    0,167785           1    106954           lseek
+  1,88    0,006737          15       431           write
+  0,38    0,001375          22        61        52 openat
+  0,21    0,000757          31        24           mmap
+  0,15    0,000542           2       205           brk
+  0,05    0,000195          21         9           mprotect
+  0,05    0,000181          20         9           close
+  0,04    0,000131          18         7         7 stat
+  0,04    0,000126          18         7           fstat
+  0,01    0,000027          27         1           munmap
+  0,00    0,000013           6         2         1 arch_prctl
+  0,00    0,000013           6         2           clock_gettime
+  0,00    0,000000           0         1         1 access
+  0,00    0,000000           0         1           execve
+------ ----------- ----------- --------- --------- ----------------
+100.00    0,357537                214242        61 total
+
+-------------------------------------------------------------------
+MRU
+CPU Time: 21.637201
+-------------------------------------------------------------------
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 52,51    2,174313           2    910829           read
+ 47,25    1,956744           2    912956           lseek
+  0,22    0,009078           4      2132           write
+  0,02    0,000902           4       205           brk
+  0,00    0,000000           0         9           close
+  0,00    0,000000           0         7         7 stat
+  0,00    0,000000           0         7           fstat
+  0,00    0,000000           0        24           mmap
+  0,00    0,000000           0         9           mprotect
+  0,00    0,000000           0         1           munmap
+  0,00    0,000000           0         1         1 access
+  0,00    0,000000           0         1           execve
+  0,00    0,000000           0         2         1 arch_prctl
+  0,00    0,000000           0         2           clock_gettime
+  0,00    0,000000           0        61        52 openat
+------ ----------- ----------- --------- --------- ----------------
+100.00    4,141037               1826246        61 total
